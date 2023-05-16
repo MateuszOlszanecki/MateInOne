@@ -2,6 +2,7 @@ const tiles = document.querySelectorAll('.tile')
 const LIGHTER_COLOR = "#88A2B9"
 const DARKER_COLOR = "#648095"
 const RED_COLOR = "red"
+const MATE_COLOR = "green"
 const WHITE_COLOR = "white"
 const BLACK_COLOR = "black"
 const COLOR_PALETTE = [DARKER_COLOR, LIGHTER_COLOR]
@@ -135,41 +136,73 @@ function translate2Dto1D(x, y){
     return y*8 + x
 }
 
-async function mateInOneCheck(){
-    queenCoords1D = piecesIndexes[2]
+function mateInOneCheck(){
+    matingOptions = []
     queenCoords2D = translate1Dto2D(piecesIndexes[2])
-    aloneKingCoords2D = translate1Dto2D(piecesIndexes[1])
-    notAloneKingCoords2D = translate1Dto2D(piecesIndexes[0])
-    if(!(aloneKingCoords2D[0] == 0 || aloneKingCoords2D[0] == 7 ||
-        aloneKingCoords2D[1] == 0 || aloneKingCoords2D[1] == 7)){
-        console.log("No mate in one!")
-    }
 
-    if(!(notAloneKingCoords2D[0] == 2 || notAloneKingCoords2D[0] == 5 ||
-        notAloneKingCoords2D[1] == 2 || notAloneKingCoords2D[1] == 5)){
-        console.log("No mate in one!")
-    }
-
-
-    //for(let i = 1; i < 8; i++){
-    //    await sleep(i * 500);
-    //    paintBoardDefault()
-    //    blockWrongTilesKing(piecesIndexes[0])
-    //    blockWrongTilesQueen(translate2Dto1D((queenCoords2D[0] + i) % 8, queenCoords2D[1]), false)
-    //    console.log(mateCheck())
-    //}
 
     for(let i = 1; i < 8; i++){
-        await sleep(i * 500);
         paintBoardDefault()
         blockWrongTilesKing(piecesIndexes[0])
-        blockWrongTilesQueen(translate2Dto1D(queenCoords2D[0], (queenCoords2D[1] + i) % 8), false)
-        console.log(mateCheck())
+        let tmpTile = translate2Dto1D((queenCoords2D[0] + i) % 8, queenCoords2D[1])
+        blockWrongTilesQueen(tmpTile, false)
+        if(tiles[tmpTile].innerHTML != "") break
+        if(mateCheck()) matingOptions.push(tmpTile)
     }
-}
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    for(let i = 1; i < 8; i++){
+        paintBoardDefault()
+        blockWrongTilesKing(piecesIndexes[0])
+        let tmpTile = translate2Dto1D(queenCoords2D[0], (queenCoords2D[1] + i) % 8)
+        blockWrongTilesQueen(tmpTile, false)
+        if(tiles[tmpTile].innerHTML != "") break
+        if(mateCheck()) matingOptions.push(tmpTile)
+    }
+
+    for(let i = 1; i < 8; i++){
+        paintBoardDefault()
+        blockWrongTilesKing(piecesIndexes[0])
+        let tmpTile = translate2Dto1D((queenCoords2D[0] + i) % 8, (queenCoords2D[1] + i) % 8)
+        if(!(inBounds(queenCoords2D[0] + i) && inBounds(queenCoords2D[1] + i))) break
+        blockWrongTilesQueen(tmpTile, false)
+        if(tiles[tmpTile].innerHTML != "") break
+        if(mateCheck()) matingOptions.push(tmpTile)
+    }
+
+    for(let i = 1; i < 8; i++){
+        paintBoardDefault()
+        blockWrongTilesKing(piecesIndexes[0])
+        let tmpTile = translate2Dto1D((queenCoords2D[0] - i) % 8, (queenCoords2D[1] - i) % 8)
+        if(!(inBounds(queenCoords2D[0] - i) && inBounds(queenCoords2D[1] - i))) break
+        blockWrongTilesQueen(tmpTile, false)
+        if(tiles[tmpTile].innerHTML != "") break
+        if(mateCheck()) matingOptions.push(tmpTile)
+    }
+
+    for(let i = 1; i < 8; i++){
+        paintBoardDefault()
+        blockWrongTilesKing(piecesIndexes[0])
+        let tmpTile = translate2Dto1D((queenCoords2D[0] + i) % 8, (queenCoords2D[1] - i) % 8)
+        if(!(inBounds(queenCoords2D[0] + i) && inBounds(queenCoords2D[1] - i))) break
+        blockWrongTilesQueen(tmpTile, false)
+        if(tiles[tmpTile].innerHTML != "") break
+        if(mateCheck()) matingOptions.push(tmpTile)
+    }
+
+    for(let i = 1; i < 8; i++){
+        paintBoardDefault()
+        blockWrongTilesKing(piecesIndexes[0])
+        let tmpTile = translate2Dto1D((queenCoords2D[0] - i) % 8, (queenCoords2D[1] + i) % 8)
+        if(!(inBounds(queenCoords2D[0] - i) && inBounds(queenCoords2D[1] + i))) break
+        blockWrongTilesQueen(tmpTile, false)
+        if(tiles[tmpTile].innerHTML != "") break
+        if(mateCheck()) matingOptions.push(tmpTile)
+    }
+
+    paintBoardDefault()
+    matingOptions.forEach(option => {
+        tiles[option].style.background = MATE_COLOR
+    })
 }
 
 function mateCheck(){
@@ -200,5 +233,8 @@ function mateCheck(){
     if(inBounds(tileCoords2D[0] + 1) && inBounds(tileCoords2D[1] - 1)){
         if(tiles[translate2Dto1D(tileCoords2D[0] + 1, tileCoords2D[1] - 1)].style.background != RED_COLOR) return false
     }
+    
+    if(tiles[piecesIndexes[1]].style.background != RED_COLOR) return false
+
     return true
 }
