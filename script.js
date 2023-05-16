@@ -31,32 +31,34 @@ tiles.forEach((tile, i) => {
             return
         }
 
-        if(!piecesPlaced[0] && tile.style.background != RED_COLOR){
+        if(!piecesPlaced[0] && tile.style.background != RED_COLOR && tile.innerHTML == ""){
             piecesPlaced[0] = true
             piecesIndexes[0] = i
             tile.innerHTML = "K"
             tile.style.color = queenChoice
             menuDiv.style.display = "none"
-            blockWrongTiles(i)
+            blockWrongTilesKing(i)
         }
-        else if(piecesPlaced[0] && !piecesPlaced[1] && tile.style.background != RED_COLOR){
+        else if(piecesPlaced[0] && !piecesPlaced[1] && tile.style.background != RED_COLOR && tile.innerHTML == ""){
             piecesPlaced[1] = true
             piecesIndexes[1] = i
             tile.innerHTML = "K"
-            if(queenChoice == "WHITE"){
+            if(queenChoice == "white"){
                 tile.style.color = BLACK_COLOR
             }
-            else if(queenChoice == "BLACK"){
+            else if(queenChoice == "black"){
                 tile.style.color = WHITE_COLOR
             }
-            blockWrongTiles(i)
+            paintBoardDefault()
+            blockWrongTilesQueen(i, true)
         }
-        else if(piecesPlaced[0] && piecesPlaced[1] && !piecesPlaced[2] && tile.style.background != RED_COLOR){
+        else if(piecesPlaced[0] && piecesPlaced[1] && !piecesPlaced[2] && tile.style.background != RED_COLOR && tile.innerHTML == ""){
             piecesPlaced[2] = true
             piecesIndexes[2] = i
             tile.innerHTML = "H"
             tile.style.color = queenChoice
             paintBoardDefault()
+            mateInOneCheck()
         }
     })
 });
@@ -67,7 +69,30 @@ choiceTable.forEach(choice => {
     })
 })
 
-function blockWrongTiles(index){
+function blockWrongTilesQueen(index, paintHimself){
+    tileCoords2D = translate1Dto2D(index)
+    tileColorNow = tiles[index].style.background
+    for(let i = 0; i < 8; i++){
+        tiles[translate2Dto1D((tileCoords2D[0] + i) % 8, tileCoords2D[1])].style.background = RED_COLOR
+        tiles[translate2Dto1D(tileCoords2D[0], (tileCoords2D[1] + i) % 8)].style.background = RED_COLOR
+
+        if(inBounds(tileCoords2D[0] - i) && inBounds(tileCoords2D[1] - i)){
+            tiles[translate2Dto1D(tileCoords2D[0] - i, tileCoords2D[1] - i)].style.background = RED_COLOR
+        }
+        if(inBounds(tileCoords2D[0] + i) && inBounds(tileCoords2D[1] + i)){
+            tiles[translate2Dto1D(tileCoords2D[0] + i, tileCoords2D[1] + i)].style.background = RED_COLOR
+        }
+        if(inBounds(tileCoords2D[0] - i) && inBounds(tileCoords2D[1] + i)){
+            tiles[translate2Dto1D(tileCoords2D[0] - i, tileCoords2D[1] + i)].style.background = RED_COLOR
+        }
+        if(inBounds(tileCoords2D[0] + i) && inBounds(tileCoords2D[1] - i)){
+            tiles[translate2Dto1D(tileCoords2D[0] + i, tileCoords2D[1] - i)].style.background = RED_COLOR
+        }
+    }
+    if(!paintHimself) tiles[index].style.background = tileColorNow
+}
+
+function blockWrongTilesKing(index){
     tileCoords2D = translate1Dto2D(index)
     tiles[index].style.background = RED_COLOR
 
@@ -96,26 +121,6 @@ function blockWrongTiles(index){
     if(inBounds(tileCoords2D[0] + 1) && inBounds(tileCoords2D[1] - 1)){
         tiles[translate2Dto1D(tileCoords2D[0] + 1, tileCoords2D[1] - 1)].style.background = RED_COLOR
     }
-
-    if(piecesPlaced[0] && piecesPlaced[1]){
-        for(let i = 0; i < 8; i++){
-            tiles[translate2Dto1D((tileCoords2D[0] + i) % 8, tileCoords2D[1])].style.background = RED_COLOR
-            tiles[translate2Dto1D(tileCoords2D[0], (tileCoords2D[1] + i) % 8)].style.background = RED_COLOR
-
-            if(inBounds(tileCoords2D[0] - i) && inBounds(tileCoords2D[1] - i)){
-                tiles[translate2Dto1D(tileCoords2D[0] - i, tileCoords2D[1] - i)].style.background = RED_COLOR
-            }
-            if(inBounds(tileCoords2D[0] + i) && inBounds(tileCoords2D[1] + i)){
-                tiles[translate2Dto1D(tileCoords2D[0] + i, tileCoords2D[1] + i)].style.background = RED_COLOR
-            }
-            if(inBounds(tileCoords2D[0] - i) && inBounds(tileCoords2D[1] + i)){
-                tiles[translate2Dto1D(tileCoords2D[0] - i, tileCoords2D[1] + i)].style.background = RED_COLOR
-            }
-            if(inBounds(tileCoords2D[0] + i) && inBounds(tileCoords2D[1] - i)){
-                tiles[translate2Dto1D(tileCoords2D[0] + i, tileCoords2D[1] - i)].style.background = RED_COLOR
-            }
-        }
-    }
 }
 
 function inBounds(x){
@@ -128,4 +133,72 @@ function translate1Dto2D(x){
 
 function translate2Dto1D(x, y){
     return y*8 + x
+}
+
+async function mateInOneCheck(){
+    queenCoords1D = piecesIndexes[2]
+    queenCoords2D = translate1Dto2D(piecesIndexes[2])
+    aloneKingCoords2D = translate1Dto2D(piecesIndexes[1])
+    notAloneKingCoords2D = translate1Dto2D(piecesIndexes[0])
+    if(!(aloneKingCoords2D[0] == 0 || aloneKingCoords2D[0] == 7 ||
+        aloneKingCoords2D[1] == 0 || aloneKingCoords2D[1] == 7)){
+        console.log("No mate in one!")
+    }
+
+    if(!(notAloneKingCoords2D[0] == 2 || notAloneKingCoords2D[0] == 5 ||
+        notAloneKingCoords2D[1] == 2 || notAloneKingCoords2D[1] == 5)){
+        console.log("No mate in one!")
+    }
+
+
+    //for(let i = 1; i < 8; i++){
+    //    await sleep(i * 500);
+    //    paintBoardDefault()
+    //    blockWrongTilesKing(piecesIndexes[0])
+    //    blockWrongTilesQueen(translate2Dto1D((queenCoords2D[0] + i) % 8, queenCoords2D[1]), false)
+    //    console.log(mateCheck())
+    //}
+
+    for(let i = 1; i < 8; i++){
+        await sleep(i * 500);
+        paintBoardDefault()
+        blockWrongTilesKing(piecesIndexes[0])
+        blockWrongTilesQueen(translate2Dto1D(queenCoords2D[0], (queenCoords2D[1] + i) % 8), false)
+        console.log(mateCheck())
+    }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function mateCheck(){
+    tileCoords2D = translate1Dto2D(piecesIndexes[1])
+
+    if(inBounds(tileCoords2D[0] - 1)){
+        if(tiles[translate2Dto1D(tileCoords2D[0] - 1, tileCoords2D[1])].style.background != RED_COLOR) return false
+    }
+    if(inBounds(tileCoords2D[0] + 1)){
+        if(tiles[translate2Dto1D(tileCoords2D[0] + 1, tileCoords2D[1])].style.background != RED_COLOR) return false
+    }
+    if(inBounds(tileCoords2D[1] - 1)){
+        if(tiles[translate2Dto1D(tileCoords2D[0], tileCoords2D[1] - 1)].style.background != RED_COLOR) return false
+    }
+    if(inBounds(tileCoords2D[1] + 1)){
+        if(tiles[translate2Dto1D(tileCoords2D[0], tileCoords2D[1] + 1)].style.background != RED_COLOR) return false
+    }
+
+    if(inBounds(tileCoords2D[0] - 1) && inBounds(tileCoords2D[1] - 1)){
+        if(tiles[translate2Dto1D(tileCoords2D[0] - 1, tileCoords2D[1] - 1)].style.background != RED_COLOR) return false
+    }
+    if(inBounds(tileCoords2D[0] + 1) && inBounds(tileCoords2D[1] + 1)){
+        if(tiles[translate2Dto1D(tileCoords2D[0] + 1, tileCoords2D[1] + 1)].style.background != RED_COLOR) return false
+    }
+    if(inBounds(tileCoords2D[0] - 1) && inBounds(tileCoords2D[1] + 1)){
+        if(tiles[translate2Dto1D(tileCoords2D[0] - 1, tileCoords2D[1] + 1)].style.background != RED_COLOR) return false
+    }
+    if(inBounds(tileCoords2D[0] + 1) && inBounds(tileCoords2D[1] - 1)){
+        if(tiles[translate2Dto1D(tileCoords2D[0] + 1, tileCoords2D[1] - 1)].style.background != RED_COLOR) return false
+    }
+    return true
 }
