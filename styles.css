@@ -1,0 +1,49 @@
+* {
+    margin: 0;
+    padding: 0;
+
+    color: white;
+    background: #27241F;
+}
+
+body {
+    justify-content: center;
+    display: grid;
+    text-align: center;
+}
+
+.ChessBoard {
+    border-spacing: 0;
+}
+
+.tile {
+    background: green;
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+}
+
+.menu {
+    margin-top: 50px;
+    font-size: 30px;
+    width: 100%;
+    display: grid;
+    justify-content: center;
+    background: #648095;
+    border-radius: 10px;
+}
+
+.choiceTable {
+    margin-top: 20px;
+}
+
+.whiteChoice {
+    background: white;
+    color: black;
+}
+
+.blackChoice {
+    background: black;
+}
